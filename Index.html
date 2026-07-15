@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Monitoring Progress NPL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght=300;400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f8fafc;
+    }
+  </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col relative">
+
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 space-y-3 pointer-events-none"></div>
+
+  <header class="bg-blue-600 text-white px-6 py-4 shadow-md flex justify-between items-center">
+    <div>
+      <h1 class="text-xl md:text-2xl font-extrabold tracking-tight flex items-center gap-2">
+        <i class="fa-solid fa-chart-line"></i> Dashboard Monitoring Progress NPL
+      </h1>
+      <p class="text-xs text-blue-100 mt-1">Monitoring Collection • 3R • Flow NPL</p>
+    </div>
+    <span class="bg-blue-500/50 border border-blue-400 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-inner flex items-center gap-1.5">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Realtime Dashboard
+    </span>
+  </header>
+
+  <main class="flex-1 p-4 md:p-6 max-w-[1600px] w-full mx-auto space-y-6">
+
+    <section class="bg-slate-900 text-white rounded-xl shadow-lg p-5">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-filter text-blue-400"></i> Pencarian / Filter
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+        <div class="md:col-span-4">
+          <label class="block text-xs text-slate-400 font-semibold mb-2">Unit ULaMM</label>
+          <select id="filterUnit" class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer">
+            <option value="ALL">ALL UNIT</option>
+          </select>
+        </div>
+        <div class="md:col-span-5">
+          <label class="block text-xs text-slate-400 font-semibold mb-2">Nama Nasabah</label>
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+            <input type="text" id="searchNama" placeholder="Cari Nama Nasabah..." class="w-full bg-slate-800 text-white border border-slate-700 rounded-lg pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+          </div>
+        </div>
+        <div class="md:col-span-3">
+          <button onclick="fetchData()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95">
+            <i class="fa-solid fa-arrows-rotate"></i> Refresh Dashboard
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <div class="bg-white rounded-xl shadow-md border-l-4 border-emerald-500 p-5 flex flex-col justify-between min-h-[160px]">
+        <div>
+          <div class="flex items-center gap-2 text-emerald-600 font-bold text-sm uppercase tracking-wider mb-3">
+            <i class="fa-regular fa-folder-open"></i> Sisa Beban (DATABASE)
+          </div>
+          <div class="grid grid-cols-2 gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 block uppercase mb-1">Sisa NOA</span>
+              <span id="sisaNoaBeban" class="text-2xl font-extrabold text-slate-800">0</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold text-slate-400 block uppercase mb-1">Sisa OS</span>
+              <span id="sisaOsBeban" class="text-2xl font-extrabold text-slate-800">Rp 0</span>
+            </div>
+          </div>
+        </div>
+        <div class="pt-3">
+          <span class="text-[10px] font-bold text-slate-400 block uppercase text-center mb-1">Success Rate (SCR)</span>
+          <div id="scrBeban" class="text-2xl font-black text-emerald-600 text-center">0.00 %</div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md border-l-4 border-blue-500 p-5 flex flex-col justify-between min-h-[160px]">
+        <div>
+          <div class="flex items-center gap-2 text-blue-600 font-bold text-sm uppercase tracking-wider mb-3">
+            <i class="fa-solid fa-database"></i> Based On Target (BASEDON)
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 block uppercase mb-1">Total NOA</span>
+              <span id="totalNoaTarget" class="text-2xl font-extrabold text-slate-800">0</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold text-slate-400 block uppercase mb-1">Total OS</span>
+              <span id="totalOsTarget" class="text-2xl font-extrabold text-slate-800">Rp 0</span>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-slate-100 pt-3 text-center text-xs text-slate-400 font-medium">
+          Target monitoring berdasarkan parameter awal pada sheet BASEDON
+        </div>
+      </div>
+
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
+        <div class="bg-emerald-600 text-white px-4 py-3 font-bold text-sm flex items-center justify-between">
+          <span>COLL</span>
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Total NOA</span>
+            <span id="collTotalNoa" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Total OS</span>
+            <span id="collTotalOs" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Sisa NOA</span>
+            <span id="collSisaNoa" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Sisa OS</span>
+            <span id="collSisaOs" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between pt-1 text-xs">
+            <span class="text-slate-500 font-semibold">Success Rate</span>
+            <span id="collScr" class="font-extrabold text-emerald-600">0.00 %</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
+        <div class="bg-amber-500 text-white px-4 py-3 font-bold text-sm flex items-center justify-between">
+          <span>3R / RESTRUKTUR</span>
+          <i class="fa-solid fa-arrows-spin"></i>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Total NOA</span>
+            <span id="rTotalNoa" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Total OS</span>
+            <span id="rTotalOs" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Sisa NOA</span>
+            <span id="rSisaNoa" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Sisa OS</span>
+            <span id="rSisaOs" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between pt-1 text-xs">
+            <span class="text-slate-500 font-semibold">Success Rate</span>
+            <span id="rScr" class="font-extrabold text-amber-500">0.00 %</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
+        <div class="bg-rose-600 text-white px-4 py-3 font-bold text-sm flex items-center justify-between">
+          <span>WO / FLOW NPL</span>
+          <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <div class="p-4 space-y-3">
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Total NOA</span>
+            <span id="woTotalNoa" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Total OS</span>
+            <span id="woTotalOs" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Sisa NOA</span>
+            <span id="woSisaNoa" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-50 pb-2 text-xs">
+            <span class="text-slate-500 font-medium">Sisa OS</span>
+            <span id="woSisaOs" class="font-bold text-slate-800">0</span>
+          </div>
+          <div class="flex justify-between pt-1 text-xs">
+            <span class="text-slate-500 font-semibold">Success Rate</span>
+            <span id="woScr" class="font-extrabold text-rose-600">0.00 %</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <section class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-100">
+      <div class="bg-slate-900 text-white px-5 py-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <h3 class="font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-table-list text-blue-400"></i> Data Detail Nasabah (DATABASE)
+        </h3>
+        <span id="totalFilterData" class="bg-blue-600/50 text-blue-100 border border-blue-400/50 text-xs px-3 py-1 rounded-full font-semibold">
+          0 Data Terfilter
+        </span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="bg-slate-800 text-slate-200 border-b border-slate-700 font-bold uppercase tracking-wider">
+              <th class="py-3 px-4 text-center">No</th>
+              <th class="py-3 px-4">Unit</th>
+              <th class="py-3 px-4">No Rekening</th>
+              <th class="py-3 px-4">Nama Nasabah</th>
+              <th class="py-3 px-4 text-center">Aging</th>
+              <th class="py-3 px-4 text-center">Realisasi</th>
+              <th class="py-3 px-4 text-center">JKW</th>
+              <th class="py-3 px-4 text-center">JT</th>
+              <th class="py-3 px-4 text-right">Plafond</th>
+              <th class="py-3 px-4 text-right">OS</th>
+              <th class="py-3 px-4 text-right">Angsuran</th>
+              <th class="py-3 px-4 text-right">Sisa DCA</th>
+              <th class="py-3 px-4 text-center">Plan</th>
+            </tr>
+          </thead>
+          <tbody id="tabelBody" class="divide-y divide-slate-100">
+            <tr>
+              <td colspan="13" class="py-8 text-center text-slate-400 font-medium">
+                <i class="fa-solid fa-spinner animate-spin text-lg text-blue-500 mb-2 block"></i> Membaca dan Menyinkronkan Data...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-slate-100 border-t border-slate-200 py-4 text-center text-[10px] text-slate-500 font-medium">
+    Dashboard Monitoring Progress NPL • PNM ULaMM &copy; 2026
+  </footer>
+
+  <script>
+    const SPREADSHEET_ID = '1qJwvK461Xt6gUWIq4S2lGVzx2tWjs4UPEP3NxUfq70E';
+
+    let databaseData = [];
+    let basedonData = [];
+
+    // Fungsi notifikasi kustom cantik bebas pemblokiran browser
+    function showNotification(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `p-4 rounded-lg shadow-xl text-white font-bold text-xs flex items-center gap-2 transform translate-y-2 opacity-0 transition-all duration-300 pointer-events-auto max-w-sm ${
+        type === 'success' ? 'bg-emerald-600' : 'bg-rose-600'
+      }`;
+      
+      const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
+      toast.innerHTML = `<i class="fa-solid ${icon} text-sm"></i> <span>${message}</span>`;
+      
+      container.appendChild(toast);
+      
+      // Animasi masuk
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 50);
+
+      // Animasi keluar
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+
+    function formatRupiah(value) {
+      if (isNaN(value) || value === null || value === undefined) return 'Rp 0';
+      return 'Rp ' + Math.round(value).toLocaleString('id-ID');
+    }
+
+    function parseNumber(val) {
+      if (!val) return 0;
+      let clean = val.toString().replace(/[^0-9,-]/g, '');
+      clean = clean.replace(',', '.');
+      let num = parseFloat(clean);
+      return isNaN(num) ? 0 : num;
+    }
+
+    // Menggunakan teknik JSONP untuk memintas pembatasan CORS saat file HTML dibuka secara lokal
+    function fetchSheetTabJSONP(tabName) {
+      return new Promise((resolve, reject) => {
+        const callbackName = 'gviz_callback_' + Math.random().toString(36).substring(2, 9);
+        
+        window[callbackName] = function(data) {
+          delete window[callbackName];
+          const scriptEl = document.getElementById(scriptId);
+          if (scriptEl) scriptEl.remove();
+          
+          if (data && data.table && data.table.rows) {
+            resolve(data.table.rows);
+          } else {
+            reject(new Error(`Format data pada tab '${tabName}' tidak sesuai.`));
+          }
+        };
+
+        const scriptId = 'script_' + callbackName;
+        const script = document.createElement('script');
+        script.id = scriptId;
+        // Penambahan parameter waktu (t) untuk mencegah cache Google Sheets
+        script.src = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=responseHandler:${callbackName}&sheet=${encodeURIComponent(tabName)}&t=${Date.now()}`;
+        
+        script.onerror = () => {
+          delete window[callbackName];
+          script.remove();
+          reject(new Error(`Koneksi gagal atau tab '${tabName}' tidak dapat diakses.`));
+        };
+        
+        document.body.appendChild(script);
+      });
+    }
+
+   async function fetchData() {
+      // Tampilkan status loading di tabel
+      document.getElementById('tabelBody').innerHTML = `<tr><td colspan="10" class="text-center py-4">Memuat data...</td></tr>`;
+
+      try {
+        const [opRows, dbRows, boRows] = await Promise.all([
+          fetchSheetTabJSONP('OPERATOR'),
+          fetchSheetTabJSONP('DATABASE'),
+          fetchSheetTabJSONP('BASEDON')
+        ]);
+
+        // 1. MAPPING UNIT (PENTING: Memperbarui Dropdown Filter)
+        const unitSet = new Set();
+        opRows.forEach((row, i) => { 
+          if(i > 0 && row.c[0] && row.c[0].v) {
+            unitSet.add(String(row.c[0].v).trim());
+          } 
+        });
+
+        const filterUnit = document.getElementById('filterUnit');
+        // Simpan nilai yang sedang dipilih sebelum di-reset
+        const currentSelected = filterUnit.value;
+        
+        // Reset dropdown ke default
+        filterUnit.innerHTML = '<option value="ALL">SEMUA UNIT</option>';
+        
+        // Masukkan unit yang unik ke dropdown
+        Array.from(unitSet).sort().forEach(unit => {
+          const opt = document.createElement('option');
+          opt.value = unit;
+          opt.textContent = unit;
+          if (unit === currentSelected) opt.selected = true;
+          filterUnit.appendChild(opt);
+        });
+
+        // 2. Mapping DATABASE
+        databaseData = dbRows.slice(1).map(row => {
+          const c = row.c;
+          return {
+            unit: c[0] ? String(c[0].v||'') : '',
+            norek: c[1] ? String(c[1].v||'') : '',
+            nama: c[2] ? String(c[2].v||'') : '',
+            aging: c[3] ? c[3].v : '',
+            realisasi: c[4] ? (c[4].f || c[4].v) : '',
+            jkw: c[5] ? c[5].v : '',
+            jt: c[6] ? (c[6].f || c[6].v) : '',
+            plafond: c[7] ? parseNumber(c[7].v) : 0,
+            os: c[8] ? parseNumber(c[8].v) : 0,
+            angsuran: c[9] ? parseNumber(c[9].v) : 0,
+            sisadca: c[10] ? parseNumber(c[10].v) : 0,
+            plan: c[11] ? String(c[11].v||'').toUpperCase() : ''
+          };
+        }).filter(item => item.norek !== '');
+
+        // 3. Mapping BASEDON
+        basedonData = boRows.slice(1).map(row => {
+          const c = row.c;
+          return {
+            unit: c[0] ? String(c[0].v||'') : '',
+            norek: c[1] ? String(c[1].v||'') : '',
+            nama: c[2] ? String(c[2].v||'') : '',
+            os: c[3] ? parseNumber(c[3].v) : 0,
+            plan: c[4] ? String(c[4].v||'').toUpperCase() : ''
+          };
+        }).filter(item => item.norek !== '');
+
+        // Jalankan update dashboard agar tabel muncul
+        updateDashboard(); 
+        showNotification("Data Berhasil Disinkronkan!", "success");
+
+      } catch (error) {
+        console.error(error);
+        showNotification("Gagal Memuat Data!", "danger");
+      }
+    }
+
+function updateDashboard() {
+  const selectedUnit = document.getElementById('filterUnit').value;
+  const searchNama = document.getElementById('searchNama').value.toLowerCase();
+
+  // 1. Filter Database untuk Tabel Detail (PENTING: Hanya dari databaseData)
+  const filteredDatabase = databaseData.filter(item => {
+    const matchUnit = (selectedUnit === 'ALL' || item.unit === selectedUnit);
+    const matchNama = item.nama.toLowerCase().includes(searchNama);
+    return matchUnit && matchNama;
+  });
+
+  // 2. Filter BasedOn hanya untuk kalkulasi ringkasan (KPI)
+  const filteredBasedon = basedonData.filter(item => {
+    return (selectedUnit === 'ALL' || item.unit === selectedUnit);
+  });
+
+  // 3. Kalkulasi Ringkasan (KPI)
+  const tColl = filteredBasedon.filter(x => x.plan === 'COLL');
+      const sColl = filteredDatabase.filter(x => x.plan === 'COLL');
+      const scrColl = tColl.length > 0 ? ((tColl.length - sColl.length) / tColl.length * 100) : 0;
+
+      const tR = filteredBasedon.filter(x => x.plan.includes('3R') || x.plan.includes('REST'));
+      const sR = filteredDatabase.filter(x => x.plan.includes('3R') || x.plan.includes('REST'));
+      const scrR = tR.length > 0 ? ((tR.length - sR.length) / tR.length * 100) : 0;
+
+      const tWo = filteredBasedon.filter(x => x.plan === 'WO' || x.plan.includes('FLOW') || x.plan.includes('LIQ'));
+      const sWo = filteredDatabase.filter(x => x.plan === 'WO' || x.plan.includes('FLOW') || x.plan.includes('LIQ'));
+      const scrWo = tWo.length > 0 ? ((tWo.length - sWo.length) / tWo.length * 100) : 0;
+
+      const totalNoaTarget = filteredBasedon.length;
+      const totalOsTarget = filteredBasedon.reduce((sum, x) => sum + x.os, 0);
+      const sisaNoaBeban = filteredDatabase.length;
+      const sisaOsBeban = filteredDatabase.reduce((sum, x) => sum + x.os, 0);
+      const globalScr = totalNoaTarget > 0 ? ((totalNoaTarget - sisaNoaBeban) / totalNoaTarget * 100) : 0;
+
+  // Update UI Ringkasan (KPI)
+      document.getElementById('sisaNoaBeban').textContent = sisaNoaBeban.toLocaleString('id-ID');
+      document.getElementById('sisaOsBeban').textContent = formatRupiah(sisaOsBeban);
+      document.getElementById('scrBeban').textContent = globalScr.toFixed(2) + ' %';
+      document.getElementById('totalNoaTarget').textContent = totalNoaTarget.toLocaleString('id-ID');
+      document.getElementById('totalOsTarget').textContent = formatRupiah(totalOsTarget);
+
+      document.getElementById('collTotalNoa').textContent = tColl.length.toLocaleString('id-ID');
+      document.getElementById('collTotalOs').textContent = formatRupiah(tColl.reduce((sum, x) => sum + x.os, 0));
+      document.getElementById('collSisaNoa').textContent = sColl.length.toLocaleString('id-ID');
+      document.getElementById('collSisaOs').textContent = formatRupiah(sColl.reduce((sum, x) => sum + x.os, 0));
+      document.getElementById('collScr').textContent = scrColl.toFixed(2) + ' %';
+
+      document.getElementById('rTotalNoa').textContent = tR.length.toLocaleString('id-ID');
+      document.getElementById('rTotalOs').textContent = formatRupiah(tR.reduce((sum, x) => sum + x.os, 0));
+      document.getElementById('rSisaNoa').textContent = sR.length.toLocaleString('id-ID');
+      document.getElementById('rSisaOs').textContent = formatRupiah(sR.reduce((sum, x) => sum + x.os, 0));
+      document.getElementById('rScr').textContent = scrR.toFixed(2) + ' %';
+
+      document.getElementById('woTotalNoa').textContent = tWo.length.toLocaleString('id-ID');
+      document.getElementById('woTotalOs').textContent = formatRupiah(tWo.reduce((sum, x) => sum + x.os, 0));
+      document.getElementById('woSisaNoa').textContent = sWo.length.toLocaleString('id-ID');
+      document.getElementById('woSisaOs').textContent = formatRupiah(sWo.reduce((sum, x) => sum + x.os, 0));
+      document.getElementById('woScr').textContent = scrWo.toFixed(2) + ' %';
+
+  // 4. Render Tabel Detail (HANYA DARI filteredDatabase)
+  const tabelBody = document.getElementById('tabelBody');
+  document.getElementById('totalFilterData').textContent = `${filteredDatabase.length} Data Terfilter`;
+
+  if (filteredDatabase.length === 0) {
+    tabelBody.innerHTML = `<tr><td colspan="13" class="text-center py-8 text-slate-400">Tidak ada data nasabah dari DATABASE ditemukan.</td></tr>`;
+  } else {
+    tabelBody.innerHTML = filteredDatabase.map((item, index) => `
+  <tr class="hover:bg-slate-50 border-b">
+    <td class="py-3 px-4 text-center">${index + 1}</td>
+    <td class="py-3 px-4">${item.unit}</td>
+    <td class="py-3 px-4">${item.norek}</td>
+    <td class="py-3 px-4 font-bold">${item.nama}</td>
+    <td class="py-3 px-4 text-center">${item.aging}</td>
+    <td class="py-3 px-4 text-center">${item.realisasi}</td>
+    <td class="py-3 px-4 text-center">${item.jkw}</td>
+    <td class="py-3 px-4 text-center">${item.jt}</td>
+    <td class="py-3 px-4 text-right">${item.plafond.toLocaleString('id-ID')}</td>
+    <td class="py-3 px-4 text-right font-bold">${item.os.toLocaleString('id-ID')}</td>
+    <td class="py-3 px-4 text-right">${item.angsuran.toLocaleString('id-ID')}</td>
+    <td class="py-3 px-4 text-right">${item.sisadca.toLocaleString('id-ID')}</td>
+    <td class="py-3 px-4 text-center">
+       <span class="px-2 py-1 rounded bg-blue-100 text-blue-800 text-[10px] font-bold">${item.plan}</span>
+    </td>
+  </tr>
+`).join('');
+  }
+}
+
+// Tambahkan ini agar filter bekerja real-time
+document.getElementById('filterUnit').addEventListener('change', updateDashboard);
+document.getElementById('searchNama').addEventListener('input', updateDashboard);
+
+    window.onload = fetchData;
+  </script>
+</body>
+</html>
